@@ -1,0 +1,52 @@
+  const handleSensitivityAnalysis = useCallback(async () => { setIsAnalyzing(true); setSensitivityResult(null); try { const modelForApi = { nodes, edges }; const result = await analyzeSensitivity(modelForApi, variables); setSensitivityResult(result); } catch (error: any) { console.error(error); alert(`Sensitivity Analysis Failed: ${error.message}`); } finally { setIsAnalyzing(false); } }, [nodes, edges, variables]);
+  return (
+    <div className="dndflow" style={{ display: 'flex', width: '100vw', height: '100vh' }}>
+      <NodePalette />
+      <div className="reactflow-wrapper" ref={reactFlowWrapper} style={{ flexGrow: 1 }}>
+        <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onSelectionChange={onSelectionChange} onDrop={onDrop} onDragOver={onDragOver} nodeTypes={nodeTypes} fitView>
+          <Controls /> <MiniMap /> <Background variant="dots" gap={12} size={1} />
+        </ReactFlow>
+        <div className="analysis-controls" style={{ position: 'absolute', top: 20, left: 220, background: 'white', padding: '15px', border: '1px solid #ccc', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div><button onClick={handleAnalyze} disabled={isAnalyzing} style={{ marginRight: '5px' }}>{isAnalyzing ? 'Analyzing...' : 'Analyze Model'}</button><button onClick={handleSensitivityAnalysis} disabled={isAnalyzing}>{isAnalyzing ? 'Analyzing...' : 'Sensitivity Analysis'}</button></div>
+            <select value={currency} onChange={(e) => setCurrency(e.target.value as 'USD' | 'MYR')} style={{ padding: '5px' }}><option value="USD">USD ($)</option><option value="MYR">MYR (RM)</option></select>
+          </div>
+          {analysisResult && (<div style={{ marginTop: '10px', fontSize: '14px', lineHeight: '1.6' }}><strong>Optimal Strategy:</strong> {analysisResult.strategy || 'N/A'}<br/><strong>Expected Cost:</strong> {formatCurrency(analysisResult.cost)}<br/><strong>Expected Effectiveness:</strong> {analysisResult.effectiveness.toFixed(2)} QALYs</div>)}
+        </div>
+      </div>
+      <aside style={{ width: '300px', borderLeft: '1px solid #ddd', background: '#f9f9f9' }}>
+        {selectedNode?.data.nodeType === 'markov' ? (<MarkovEditor nodeData={selectedNode.data} onUpdateNode={(updatedData) => onUpdateNode({ ...selectedNode.data, ...updatedData })} />) : (<PropertiesPanel selectedNodeData={selectedNode?.data || null} onUpdateNode={onUpdateNode} variables={variables} onUpdateVariables={setVariables} formatCurrency={formatCurrency} />)}
+      </aside>
+      {sensitivityResult && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}><div style={{ background: 'white', padding: '20px', borderRadius: '8px', maxHeight: '80vh', overflowY: 'auto' }}><h2>One-Way Sensitivity Analysis</h2><button onClick={() => setSensitivityResult(null)} style={{ float: 'right' }}>Close</button><TornadoChart data={sensitivityResult} /></div></div>)}
+    </div>
+  );
+}
+export default function ModelBuilder() { return (<ReactFlowProvider><Flow /></ReactFlowProvider>); }
+```
+
+#### **`frontend/src/App.tsx`**
+
+```tsx
+import React from 'react';
+import ModelBuilder from './ModelBuilder';
+import './App.css';
+function App() { return (<div style={{ width: '100vw', height: '100vh' }}><ModelBuilder /></div>); }
+export default App;
+```
+
+---
+
+### **Part 3: How to Run Everything**
+
+1.  **Run the Backend:**
+    *   Open a terminal in the `the-rebel-einstein/backend` directory.
+    *   Create and activate a virtual environment (`python -m venv venv`, `source venv/bin/activate`).
+    *   Install dependencies: `pip install -r requirements.txt`.
+    *   Start the server: `uvicorn main:app --reload`.
+
+2.  **Run the Frontend:**
+    *   Open a **second** terminal in the `the-rebel-einstein/frontend` directory.
+    *   Install dependencies: `npm install`.
+    *   Start the app: `npm start`.
+
+Your browser will open to `http://localhost:3000`, and you will have the complete, enhanced version of **The Rebel Einstein** running.
